@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Browser Web IDE</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Segoe UI;
+background:#1e1e1e;
+color:white;
+display:flex;
+flex-direction:column;
+height:100vh;
+}
+
+header{
+background:#111;
+display:flex;
+align-items:center;
+padding:10px;
+gap:10px;
+}
+
+button{
+padding:7px 14px;
+border:none;
+cursor:pointer;
+background:#007acc;
+color:white;
+border-radius:4px;
+}
+
+button:hover{
+background:#005fa3;
+}
+
+select{
+padding:6px;
+}
+
+#container{
+display:flex;
+flex:1;
+overflow:hidden;
+}
+
+#sidebar{
+width:200px;
+background:#252526;
+padding:10px;
+}
+
+#sidebar h3{
+margin-top:0;
+}
+
+.file{
+padding:5px;
+cursor:pointer;
+}
+
+.file:hover{
+background:#333;
+}
+
+#main{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+#tabs{
+background:#2d2d2d;
+padding:5px;
+display:flex;
+gap:10px;
+}
+
+.tab{
+padding:5px 10px;
+background:#3c3c3c;
+border-radius:3px;
+}
+
+#editor{
+flex:1;
+}
+
+#console{
+height:150px;
+background:black;
+overflow:auto;
+padding:10px;
+}
+
+.light{
+background:white;
+color:black;
+}
+
+</style>
+
+<script src="https://unpkg.com/monaco-editor@0.34.1/min/vs/loader.js"></script>
+
+</head>
+
+<body>
+
+<header>
+
+<h2>Web IDE</h2>
+
+<select id="language">
+<option value="javascript">JavaScript</option>
+<option value="python">Python</option>
+<option value="cpp">C++</option>
+</select>
+
+<button onclick="runCode()">Run</button>
+
+<button onclick="saveCode()">Save</button>
+
+<button onclick="downloadCode()">Download</button>
+
+<button onclick="clearConsole()">Clear Console</button>
+
+<button onclick="toggleTheme()">Toggle Theme</button>
+
+</header>
+
+<div id="container">
+
+<div id="sidebar">
+
+<h3>Files</h3>
+
+<div class="file" onclick="loadExample()">example.js</div>
+
+</div>
+
+<div id="main">
+
+<div id="tabs">
+<div class="tab">main.js</div>
+</div>
+
+<div id="editor"></div>
+
+<div id="console"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let editor;
+let darkTheme = true;
+
+require.config({
+paths:{vs:"https://unpkg.com/monaco-editor@0.34.1/min/vs"}
+});
+
+require(["vs/editor/editor.main"],function(){
+
+editor = monaco.editor.create(document.getElementById("editor"),{
+
+value:`// Welcome to Web IDE
+function greet(){
+console.log("Hello Developer 🚀");
+}
+
+greet();`,
+
+language:"javascript",
+
+theme:"vs-dark",
+
+automaticLayout:true
+
+});
+
+});
+
+
+function runCode(){
+
+let code = editor.getValue();
+let consoleDiv = document.getElementById("console");
+
+consoleDiv.innerText="";
+
+let logs=[];
+
+console.log = function(msg){
+logs.push(msg);
+};
+
+try{
+
+eval(code);
+
+consoleDiv.innerText = logs.join("\\n") || "Code executed successfully.";
+
+}
+
+catch(err){
+
+consoleDiv.innerText = err;
+
+}
+
+}
+
+
+function clearConsole(){
+
+document.getElementById("console").innerText="";
+
+}
+
+
+function saveCode(){
+
+localStorage.setItem("webide_code",editor.getValue());
+
+alert("Code Saved!");
+
+}
+
+
+function loadExample(){
+
+let code = localStorage.getItem("webide_code");
+
+if(code){
+
+editor.setValue(code);
+
+}
+
+else{
+
+editor.setValue(`console.log("Example file loaded");`);
+
+}
+
+}
+
+
+function downloadCode(){
+
+let code = editor.getValue();
+
+let blob = new Blob([code],{type:"text/plain"});
+
+let a = document.createElement("a");
+
+a.href = URL.createObjectURL(blob);
+
+a.download = "code.js";
+
+a.click();
+
+}
+
+
+function toggleTheme(){
+
+darkTheme = !darkTheme;
+
+monaco.editor.setTheme(darkTheme ? "vs-dark" : "vs");
+
+}
+
+</script>
+
+</body>
+</html>
